@@ -1,3 +1,9 @@
+/*
+Demo of using a semaphore to signal between threads.
+The message from thread 2 should always print before the message
+from thread 1.
+*/
+
 #include <stdio.h>
 #include <pthread.h>
 #include <semaphore.h>
