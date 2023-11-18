@@ -33,7 +33,10 @@ int main(int argc, char *argv[])
 {
     pthread_t tid1, tid2;
 
-    sem_init(&mutex, 0, 1);
+    if (sem_init(&mutex, 0, 1) != 0) {
+        perror("sem_init failed");
+        exit(EXIT_FAILURE);
+    }
 
     if (pthread_create(&tid1, NULL, inc, NULL) != 0) {
         perror("Error creating thread 1");
@@ -53,7 +56,7 @@ int main(int argc, char *argv[])
         exit(EXIT_FAILURE);
     }
 
-    if (count < 2 * ITERATIONS)
+    if (count != 2 * ITERATIONS)
         printf("BOOM! count is [%d], should be %d\n", count, 2 * ITERATIONS);
     else
         printf("OK! count is [%d]\n", count);
