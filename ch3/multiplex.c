@@ -30,11 +30,19 @@ void *visit(void *arg) {
     int thread_num = *((int *) arg);
 
     printf("TH(%2d) Waiting at checking queue\n", thread_num);
-    sem_wait(&rooms_available);
+    if (sem_wait(&rooms_available) == -1) {
+        perror("Error waiting on semaphore");
+        free(arg);
+        pthread_exit(NULL);
+    }
     printf("TH(%2d) Got a room, sleeping..\n", thread_num);
     sleep_random_interval();
     printf("TH(%2d) Garcon, coffee!\n", thread_num);
-    sem_post(&rooms_available);
+    if (sem_post(&rooms_available) == -1) {
+        perror("Error posting to semaphore");
+        free(arg);
+        pthread_exit(NULL);
+    }
     printf("TH(%2d) Room key returned\n", thread_num);
 
     free(arg);
@@ -50,7 +58,10 @@ int main(void) {
     // returns the same value.
     srand(time(NULL));
 
-    sem_init(&rooms_available, 0, NUM_ROOMS);
+    if (sem_init(&rooms_available, 0, NUM_ROOMS) == -1) {
+        perror("Error initializing semaphore");
+        exit(EXIT_FAILURE);
+    }
 
     for (int i = 0; i < NUM_GUESTS; i++) {
         arg = malloc(sizeof(*arg));
