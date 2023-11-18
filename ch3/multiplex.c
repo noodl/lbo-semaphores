@@ -36,7 +36,10 @@ void *visit(void *arg) {
     printf("TH(%2d) Garcon, coffee!\n", thread_num);
     sem_post(&rooms_available);
     printf("TH(%2d) Room key returned\n", thread_num);
-    return NULL;
+
+    free(arg);
+    pthread_exit(NULL);
+    return NULL; // Should never be reached
 }
 
 int main(void) {
@@ -69,6 +72,8 @@ int main(void) {
             exit(EXIT_FAILURE);
         }
     }
+
+    sem_destroy(&rooms_available);
 
     return EXIT_SUCCESS;
 }
