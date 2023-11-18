@@ -6,10 +6,8 @@
 
 /*
 Demonstrates using a semaphore to implement a multiplex.
-A hotel has a fixed number of rooms available but there
-are more guests than that waiting. The guests are represented
-by threads and a semaphore is used to store the number of
-remaining rooms available.
+A hotel with more guests than rooms is represented by a
+semaphore. The guests are represented by threads.
 */
 
 #define NUM_ROOMS 6
@@ -21,7 +19,7 @@ void sleep_random_interval() {
     struct timespec ts;
     ts.tv_sec = 0;
     // Random number between 0.5 and 1 seconds in nanoseconds
-    ts.tv_nsec = (rand() % (500000001)) + 500000000;
+    ts.tv_nsec = (rand() % 500000001) + 500000000;
 
     nanosleep(&ts, NULL);
 }
@@ -29,15 +27,17 @@ void sleep_random_interval() {
 void *visit(void *arg) {
     int thread_num = *((int *) arg);
 
-    printf("TH(%2d) Waiting at checking queue\n", thread_num);
+    printf("TH(%2d) Waiting for check in\n", thread_num);
     if (sem_wait(&rooms_available) == -1) {
         perror("Error waiting on semaphore");
         free(arg);
         pthread_exit(NULL);
     }
+
     printf("TH(%2d) Got a room, sleeping..\n", thread_num);
     sleep_random_interval();
     printf("TH(%2d) Garcon, coffee!\n", thread_num);
+
     if (sem_post(&rooms_available) == -1) {
         perror("Error posting to semaphore");
         free(arg);
@@ -55,7 +55,7 @@ int main(void) {
     int *arg;
 
     // Seed the random number generator, otherwise rand() always
-    // returns the same value.
+    // returns the same value on each program run.
     srand(time(NULL));
 
     if (sem_init(&rooms_available, 0, NUM_ROOMS) == -1) {
@@ -64,6 +64,8 @@ int main(void) {
     }
 
     for (int i = 0; i < NUM_GUESTS; i++) {
+        // The thread argument needs to live on the heap for it to be available
+        // to other threads.
         arg = malloc(sizeof(*arg));
         if (arg == NULL) {
             perror("Couldn't allocate memory for thread arg.");
@@ -84,6 +86,7 @@ int main(void) {
         }
     }
 
+    // This can fail but the program's about to die anyway
     sem_destroy(&rooms_available);
 
     return EXIT_SUCCESS;
