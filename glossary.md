@@ -40,3 +40,6 @@ Generalization of a mutex which allows up a fixed maximum number of threads to b
 
 ## Symmetric vs Asymmetric solutions
 Concurrent algorithms which are implemented either with the same code or separate code per thread.
+
+## Critical section
+A section of code that may be executed by at most one thread at a time.
