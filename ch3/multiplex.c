@@ -27,19 +27,21 @@ void sleep_random_interval() {
 }
 
 void *visit(void *arg) {
-    // Not sure why but this doesn't interleave the output as I'd expected.
-    printf("Waiting at checking queue\n");
+    int thread_num = *((int *) arg);
+
+    printf("TH(%2d) Waiting at checking queue\n", thread_num);
     sem_wait(&rooms_available);
-    printf("Got a room, sleeping..\n");
+    printf("TH(%2d) Got a room, sleeping..\n", thread_num);
     sleep_random_interval();
-    printf("Garcon, coffee!\n");
+    printf("TH(%2d) Garcon, coffee!\n", thread_num);
     sem_post(&rooms_available);
-    printf("Room key returned\n");
+    printf("TH(%2d) Room key returned\n", thread_num);
     return NULL;
 }
 
 int main(void) {
     pthread_t threads[NUM_GUESTS];
+    int *arg;
 
     // Seed the random number generator, otherwise rand() always
     // returns the same value.
@@ -48,7 +50,14 @@ int main(void) {
     sem_init(&rooms_available, 0, NUM_ROOMS);
 
     for (int i = 0; i < NUM_GUESTS; i++) {
-        if (pthread_create(&threads[i], NULL, visit, NULL) != 0) {
+        arg = malloc(sizeof(*arg));
+        if (arg == NULL) {
+            perror("Couldn't allocate memory for thread arg.");
+            exit(EXIT_FAILURE);
+        }
+
+        *arg = i;
+        if (pthread_create(&threads[i], NULL, visit, arg) != 0) {
             perror("Error creating thread");
             exit(EXIT_FAILURE);
         }
