@@ -1,26 +1,17 @@
-CC=gcc
-CFLAGS=-I.
-DEPS =
-OBJ = rendezvous.o signalling.o mutex.o multiplex.o
+CC = gcc
+CFLAGS = -pthread
 
-%.o: %.c $(DEPS)
-	$(CC) -c -o $@ $< $(CFLAGS)
+# Get the list of all .c files in the current directory
+SRCS = $(wildcard *.c)
 
-all: rendezvous signalling mutex multiplex
+# Generate the list of corresponding executable names without extension
+EXECS = $(SRCS:.c=)
 
-rendezvous: rendezvous.o
-	$(CC) -o rendezvous rendezvous.o -lpthread
+all: $(EXECS)
 
-signalling: signalling.o
-	$(CC) -o signalling signalling.o -lpthread
-
-mutex: mutex.o
-	$(CC) -o mutex mutex.o -lpthread
-
-multiplex: multiplex.o
-	$(CC) -o multiplex multiplex.o -lpthread
-
-.PHONY: clean
+# Rule to build each executable
+%: %.c
+	$(CC) $(CFLAGS) -o $@ $<
 
 clean:
-	rm -f *.o rendezvous signalling mutex multiplex
+	rm -f $(EXECS)
